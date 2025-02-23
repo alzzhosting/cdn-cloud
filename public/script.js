@@ -1,4 +1,4 @@
-const fetch = require ("node-fetch") 
+
 const dropZone = document.getElementById('dropZone');
         const fileInput = document.getElementById('fileInput');
         const fileName = document.getElementById('fileName');
