@@ -4,35 +4,38 @@ const path = require("path");
 const fs = require("fs");
 
 const app = express();
-const uploadDir = path.join(__dirname, "uploads");
+const port = 3000;
 
-// Bikin folder upload kalau belum ada
+// Buat folder uploads kalau belum ada
+const uploadDir = path.join(__dirname, "uploads");
 if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir);
+    fs.mkdirSync(uploadDir);
 }
 
-// Konfigurasi multer buat handle upload file
+// Konfigurasi multer buat simpen file
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, uploadDir),
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const filename = Date.now() + ext;
-    cb(null, filename);
-  }
+    destination: uploadDir,
+    filename: (req, file, cb) => {
+        const uniqueSuffix = Date.now() + path.extname(file.originalname);
+        cb(null, uniqueSuffix);
+    },
 });
 
 const upload = multer({ storage });
 
-app.post("/upload", upload.single("file"), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: "No file uploaded" });
+app.use(express.static("public"));
 
-  res.json({
-    success: true,
-    url: `/uploads/${req.file.filename}`
-  });
+// Endpoint buat upload file
+app.post("/upload", upload.single("file"), (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ error: "No file uploaded" });
+    }
+    res.json({ url: `/download/${req.file.filename}` });
 });
 
-// Biar file bisa diakses
-app.use("/uploads", express.static(uploadDir));
+// Endpoint buat akses file yang di-upload
+app.use("/download", express.static(uploadDir));
 
-app.listen(3000, () => console.log("Server jalan di http://localhost:3000"));
+app.listen(port, () => {
+    console.log(`Server jalan di http://localhost:${port}`);
+});
